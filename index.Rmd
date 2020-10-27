@@ -4,7 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: column
     vertical_layout: scroll
-    
+    source_code: "https://github.com/kvithana/chart-toppers"
 ---
 
 <style type="text/css">
@@ -156,7 +156,7 @@ This dashboard uses Plotly to allow you to interact with our graphs. Use the too
 
 ##### [Track Title Analysis](#text-analysis)
 
-##### [References](#references)
+##### [References](#references-1)
 
 
 #### The Team
@@ -483,7 +483,9 @@ fig_top_10_genres_2019
 
 ##### Analysing Feature Distribution 
 
-We can see from this figure that for songs that were popular in 2019, the median levels of danceability and energy were relatively high, compared to levels of acousticness, instrumentalness, liveness and speechiness. This indicates that Australians generally preferred songs that feel energetic and are suitable for dancing. When looking at the median level of valence and the whiskers, there seems to be an approximately even split between preference for songs that sound more positive compared to songs that sound more negative. There is greater variance among the middle 50% of the data for valence in particular, and this is slightly skewed towards the lower values, indicating the existience of a slightly higher concentration of popular songs in 2019 that sounded more negative.
+We can see from this figure that for songs that were popular in 2019, the median levels of `danceability` and `energy` were relatively high, compared to levels of `acousticness`, `instrumentalness`, `liveness` and `speechiness`. This indicates that Australians generally preferred songs that feel energetic and are suitable for dancing. 
+
+When looking at the median level of `valence` and the whiskers, there seems to be an approximately even split between preference for songs that sound more positive compared to songs that sound more negative. There is greater variance among the middle 50% of the data for valence in particular, and this is slightly skewed towards the lower values, indicating the existience of a slightly higher concentration of popular songs in 2019 that sounded more negative.
 
 ### Feature Distribution {.hide-title}
 
@@ -528,7 +530,7 @@ Column
 
 #### Australia's Changing Music Taste
 
-Since the 1970s, technology, culture and fashion have changed drastically. Australian music trends have also changed as popular music trends in the 1970s are rarely seen in the present day. We have investigated genres, artists and audio features (duration, key, mode, time signature, acousticness, speechiness, danceability, energy, loudness, valence/happiness and tempo) from 1970 to 2019 to analyse these changes. Let's take a look at how the ARIA charts have evolved over time. Here's what the ARIA chart looked like in 1970:
+Since the 1970s, technology, culture and fashion have changed drastically. Australian music trends have also changed as popular music trends in the 1970s are rarely seen in the present day. We have investigated genres, artists and audio features (acousticness, speechiness, danceability, energy, loudness and valence/happiness) from 1970 to 2019 to analyse these changes. Let's take a look at how the ARIA charts have evolved over time. Here's what the ARIA chart looked like in 1970:
 
 <iframe src="https://open.spotify.com/embed/playlist/6YKI2VYSO9iZtyaLb3ZUsG" style="border: 0; width: 100%; height: 380px;" allowfullscreen allow="encrypted-media"></iframe>
 
@@ -611,6 +613,7 @@ animate(anim, 900, fps = 20,  width = 1200, height = 3000, start_pause =  15,
 ##### Analysing Feature Distribution 
 
 By examining the distribution of features over time, we can see that:
+
 - levels of acousticness and instrumentalness have been trending downwards since the 1970s
 - levels of liveness and speechiness have generally remained the same since the 1970s
 - levels of danceability and energy have been trending upwards since the 1970s
@@ -660,7 +663,9 @@ fig
 
 ##### Changes In Track Happiness (Valence) 
 
-Upon closer inspection of the distribution of valence among popular songs over time, it seems that there is actually more of a U-shaped trend, rather than a series of ups and downs, in median valence over time. Overall, in all other decades, the level of valence is lower than that in the 1970s. Although there has been a slight upwards trend within the last decade, the level of valence has not risen to anywhere near the same level it was at in the 1970s. These observations indicate that Australians generally preferred more happy, cheerful or euphoric sounding songs in the 70s, but over time, sad, depressed or angry sounding songs have gained much more prevalence and resonated with more Australians.
+Upon closer inspection of the distribution of `valence` among popular songs over time, it seems that there has been a series of ups and downs in median valence over time. Valence was at its highest around the 70s and 80s, dipping in early 90s before rising in the late 90s, before dipping again in the 2000s and 2010s. Overall, the general trend is downward sloping.
+
+These observations indicate that Australians generally preferred more happy, cheerful or euphoric sounding songs in the 70s, 80s and early 2000s, but over time, sad, depressed or angry sounding songs have gained much more prevalence and resonated with more Australians.
 
 ### Valence {.hide-title}
 
@@ -703,7 +708,7 @@ fig_val
 
 ##### Changes In Loudness
 
-Let's closely examine the distribution in the level of loudness for popular songs over time. Note that this feature was not included in previous figures since Spotify measures loudness on a different scale compared to the other features, so it was difficult to show loudness in the same figure as other features for comparison. We can see that there has has generally been an upwards trend in median loudness over time, with less and less variance among the middle 50% of the data as time has progressed. These observations indicate that loud songs have gained more popularity over time, and in the last 1-2 decades, popular songs have had less dynamic range, with the majority being relatively louder overall. One possible explanation for this trend is, since the 1980s, the music industry has been using a production technique called "dynamic range compression" to make songs appear louder and more impactful to listeners. [Source](https://www.bbc.com/news/entertainment-arts-35250557)
+Let's closely examine the distribution in the level of `loudness` for popular songs over time. Note that this feature was not included in previous figures since Spotify measures loudness on a different scale compared to the other features, so it was difficult to show loudness in the same figure as other features for comparison. We can see that there has has generally been an upwards trend in median loudness over time, with less and less variance among the middle 50% of the data as time has progressed. These observations indicate that loud songs have gained more popularity over time, and in the last 1-2 decades, popular songs have had less dynamic range, with the majority being relatively louder overall. One possible explanation for this trend is, since the 1980s, the music industry has been using a production technique called "dynamic range compression" to make songs appear louder and more impactful to listeners. [Source](https://www.bbc.com/news/entertainment-arts-35250557)
 
 ### Loudness {.hide-title}
 
@@ -1179,13 +1184,16 @@ Column
 -------------------------------------
 
 #### References
-
+- ARIA Top 100 Singles Chart. (2020). Retrieved 4 October 2020, from https://www.aria.com.au/charts/2019/singles-chart 
 - C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC Florida, 2020.
+- Cox, T. (2016). Why is modern music so loud?. Retrieved 22 October 2020, from https://www.bbc.com/news/entertainment-arts-35250557
 - Emil Hvitfeldt (2020). textdata: Download and Load Various Text Datasets. R package version 0.4.1. https://github.com/EmilHvitfeldt/textdata 
+- Get Audio Features for a Track | Spotify for Developers. (2020). Retrieved 4 October 2020, from https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/ 
 - Hadley Wickham and Dana Seidel (2020). scales: Scale Functions for Visualization. https://scales.r-lib.org/, https://github.com/r-lib/scales. 
 - Jeroen Ooms (2018). gifski: Highest Quality GIF Encoder. https://gif.ski/ (upstream), https://github.com/r-rust/gifski (devel). 
 - Kenneth Benoit, David Muhr and Kohei Watanabe (2020). stopwords: Multilingual Stopword Lists. R package version 2.0. https://github.com/quanteda/stopwords 
 - Kirill Müller (2017). here: A Simpler Way to Find Your Files. https://github.com/krlmlr/here, http://krlmlr.github.io/here. 
+- Overview | Hottest 100 Archive | triple j. (2020). Retrieved 4 October 2020, from https://www.abc.net.au/triplej/hottest100/archive/
 - Richard Iannone, JJ Allaire and Barbara Borges (2020). flexdashboard: R Markdown Format for Flexible Dashboards. R package version 0.5.2. http://rmarkdown.rstudio.com/flexdashboard
 - Silge J, Robinson D (2016). “tidytext: Text Mining and Analysis Using Tidy Data Principles in R.” JOSS, 1(3). doi: 10.21105/joss.00037 (URL: https://doi.org/10.21105/joss.00037) 
 - Thomas Lin Pedersen and David Robinson (2020). gganimate: A Grammar of Animated Graphics. https://gganimate.com/, https://github.com/thomasp85/gganimate. 
@@ -1193,7 +1201,3 @@ Column
 - Yihui Xie (2014) knitr: A Comprehensive Tool for Reproducible Research in R. In Victoria Stodden, Friedrich Leisch and Roger D. Peng, editors, Implementing Reproducible Computational Research. Chapman and Hall/CRC. ISBN 978-1466561595
 
 
-- ARIA Top 100 Singles Chart. (2020). Retrieved 4 October 2020, from https://www.aria.com.au/charts/2019/singles-chart 
-- Cox, T. (2016). Why is modern music so loud?. Retrieved 22 October 2020, from https://www.bbc.com/news/entertainment-arts-35250557
-- Get Audio Features for a Track | Spotify for Developers. (2020). Retrieved 4 October 2020, from https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/ 
-- Overview | Hottest 100 Archive | triple j. (2020). Retrieved 4 October 2020, from https://www.abc.net.au/triplej/hottest100/archive/
