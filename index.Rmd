@@ -887,6 +887,60 @@ plot_ly(top_aria_artists_by_year,  x = ~year, y = ~artist, type = 'scatter',
           xaxis = list(title = 'Year', titlefont = f1, ticks = "outside", dtick = 5, autotick = FALSE))
 ```
 
+### {.description .pt-bg}
+
+##### Modern Chart Controllers
+
+This interactive graph represents the top 10 artists for each year with their number of featuring tracks that year cumulatively tallied. We can see that there is a positive trend in terms of the presence that the top artists have as we enter the mid 2005s onward. From the 70s to 00s, each top artist had 2 tracks in the chart on average. This figure is now 3.5 tracks on average in 2019, almost double what it was two decades ago. This supports our previous finding that once artists enter the chart, they tend to dominate far longer than in the past.
+
+### Title {.hide-title}
+
+
+```{r}
+top_charts_aria <- features_data %>% 
+  filter(chart == 'ARIA') %>%
+  left_join(playlist_data %>% select(playlist_uri, chart, year) %>% unique()) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri) %>% unique()) %>%
+  select(artist_uri, year) %>%
+  group_by(artist_uri) %>%
+  tally(name = 'Total Charts') %>%
+  left_join(artists_data %>% select(uri, name) %>% unique(), by = c('artist_uri' = 'uri')) %>%
+  arrange(-`Total Charts`) %>%
+  rename(Artist = name) %>%
+  select(Artist, `Total Charts`) 
+
+
+aria_artists_tallied_by_year <- features_data %>% 
+  filter(chart == 'ARIA') %>%
+  left_join(playlist_data %>% select(playlist_uri, chart, year) %>% unique()) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri) %>% unique()) %>%
+  select(artist_uri, year) %>%
+  group_by(year, artist_uri) %>%
+  tally(name = 'Count') %>%
+  left_join(artists_data %>% select(uri, name) %>% unique(), by = c('artist_uri' = 'uri')) %>%
+  rename(Artist = name) %>%
+  left_join(top_charts_aria, by = 'Artist') %>%
+  select(Artist, Count, `Total Charts`) %>%
+  group_by(year) %>% 
+  arrange(year, desc(Count), desc(`Total Charts`)) %>%
+  group_by(year) %>% 
+  slice_max(Count, n = 10, with_ties = FALSE)
+
+year_totals_aria_artists_tallied_by_year <- aria_artists_tallied_by_year %>% group_by(year) %>% summarise(Sum = sum(Count)) 
+
+fit <- lm(Sum ~ year, data = year_totals_aria_artists_tallied_by_year)
+
+
+plot_ly() %>%
+  add_trace(data = aria_artists_tallied_by_year, x = ~year, y =  ~Count, type = 'bar', color = ~Artist, colors = rev(custom_palette_single_10[2:9]) ) %>%
+  add_trace(data = year_totals_aria_artists_tallied_by_year, x = ~year, y = fitted(fit), type = 'scatter', mode = 'lines', name = 'Total trend', line = list(color = '#f9c74f')) %>%
+  layout( title = "Tracks by yearly top 10 charting artists in ARIA charts by year",
+          yaxis = list(title = 'No. Tracks In Chart',  ticks = "outside", dtick = 10, autotick = FALSE, range = c(0, 50)), 
+          xaxis = list(title = 'Chart Year', ticks = "outside", dtick = 5, autotick = FALSE, range = c(1969, 2020)), 
+          legend = list(title = 'Top 200 Charting Artists'),  barmode = 'stack', showlegend = FALSE)
+  
+```
+
 ARIA vs Hottest 100
 =====================================
 
