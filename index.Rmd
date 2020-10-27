@@ -1,0 +1,1199 @@
+---
+title: "Chart Toppers"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: column
+    vertical_layout: scroll
+    
+---
+
+<style type="text/css">
+  #dashboard-container {
+    max-width: 900px;
+    margin: auto;
+  }
+  
+  h4 {
+    font-size: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+  }
+  
+  h5 {
+    font-size: 1.5em;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+  }
+  
+  h6 {
+    font-size: 1.3em;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+  }
+  
+  img {
+    width: 98%;
+  }
+  
+  .figure {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     flex-direction: column;
+  }
+  
+  body {
+     font-size: 160%;
+  }
+  
+  .navbar-inverse {
+    background-color: #1DB954;
+    border-color: #1DB954;
+  }
+  
+  .navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:hover, .navbar-inverse .navbar-nav>.active>a:focus {
+    color: #ffffff;
+    background-color: #191414;
+  }
+  
+  .navbar-inverse .navbar-nav>li>a:hover, .navbar-inverse .navbar-nav>li>a:focus {
+    color: #ffffff;
+    background-color: #191414;
+  }
+  
+  .chart-title {
+    font-size: 1.3em;
+  }
+  
+  .description {
+    background: none;
+    border: none;
+  }
+  
+  .pb-bg {
+    margin-bottom: 2em;
+  }
+
+  .pb-sm {
+    margin-bottom: 1em;
+  }
+  
+  .pt-bg {
+    margin-top: 2em;
+  }
+  
+  .pt-sm {
+    margin-top: 1em;
+  }
+  
+  .description .chart-stage {
+    padding: unset;
+  }
+  
+  .hide-title .chart-title {
+    opacity: 0;
+    height: 25px;
+  }
+  
+  video {
+    width: 100%
+  }
+
+</style>
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(here)
+library(tidyverse)
+library(plotly)
+# devtools::install_github('thomasp85/gganimate')
+library(gganimate)
+library(scales)
+library(gifski)
+library(knitr)
+library(tidytext)
+library(textdata)
+library(stopwords)
+```
+
+
+
+Home
+=====================================
+
+Column {data-width=600}
+-------------------------------------
+
+![](https://kal.im/wp-content/uploads/2020/10/chart-toppers.png)
+
+
+#### Chart Toppers
+
+##### What the ARIA charts and Hottest 100 say about Australia's changing music tastes
+
+Music charts around the world give insights into the ever changing music tastes of the population which they represent. In Australia, the [Australian Recording Industry Association](https://www.aria.com.au/) (ARIA) have been publishing weekly rankings of tracks and albums selling in the Australian market under the name of the **ARIA Charts** since 1970. [Triple J](https://www.abc.net.au/triplej/), a national Australian radio station intended to appeal to listeners of alternative music, also host an annual ranking event titled the **Triple J Hottest 100**, a vote-driven chart of the 100 most popular songs amongst its listeners. 
+
+Our team aims to investigate how Australian music tastes have changed over time by comparing the audio features of tracks from the yearly ARIA and Triple-J Hottest 100 charts from 1970-2019. We will be using the Spotify API to map the tracks from the charts to its corresponding Spotify URI, allowing us to analyse individual tracks against key attributes: duration, key, mode, time signature, acousticness, speechiness, danceability, energy, loudness, valence/happiness and tempo. 
+
+The documentation for the endpoint we are using to get the analysis data is available [here](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/).
+We are sourcing the ARIA charts and Triple J Hottest 100 rankings from these sites: 
+
+- https://www.aria.com.au/charts/2019/singles-chart
+- https://en.wikipedia.org/wiki/Triple_J_Hottest_100
+
+This dashboard uses Plotly to allow you to interact with our graphs. Use the tools when hovering over charts to select and filter attributes or focus in on time ranges!
+
+
+#### Table Of Contents
+
+##### [Data Sourcing and Cleansing](#the-data)
+
+##### [Present Day - The 2019 Chart](#the-present)
+
+##### [Australia's Changing Tastes Over Time](#trends-over-time)
+
+##### [ARIA Chart vs The Hottest 100](#aria-vs-hottest-100)
+
+##### [Track Title Analysis](#text-analysis)
+
+##### [References](#references)
+
+
+#### The Team
+
+Our **Discove-R-Weekly** team as part of ETC1010:
+
+- **Alvin Lieu** 
+- **Angela Oon** 
+- **Hannah Shiau** 
+- **Kalana Vithana** 
+- **Macey Jackson** 
+- **Poornisha Senthilkumar** 
+- **Subhashini Singhal** 
+
+
+The Data
+=====================================
+
+Column
+-------------------------------------
+
+```{r}
+```
+
+#### Data Sourcing
+
+The data was sourced through calling the above endpoint of the Spotify API. This was done by using their Javascript client libraries since it was what we were most familiar with. 
+
+The source code for pulling data from Spotify is available on Github [here](https://github.com/kvithana/spotify-audio-features-to-csv).
+
+We created or sourced a Spotify playlists which included the songs for each year's charts from 1970 - 2019. This playlist could then be passed to the CLI tool.
+
+Given a list of playlist URIs or URLs in a `.txt` file, the program will get the tracks associated with that playlist, and call the [Spotify Audio Features](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/) endpoint to get insightful information about the tracks.
+
+This data was outputted in csv format into the following structure:
+```
+└───data
+    │   playlists.csv
+    │
+    ├───features
+    │       0hIiy3ihpzsIX9Dd6RVtWw.csv
+    │       0kgHtoYJSMS3pMMciC3Us4.csv
+    │       ...
+    │
+    ├───artists
+    │       0hIiy3ihpzsIX9Dd6RVtWw.csv
+    │       0kgHtoYJSMS3pMMciC3Us4.csv
+    │       ...
+    │
+    └───tracks
+            0hIiy3ihpzsIX9Dd6RVtWw.csv
+            0kgHtoYJSMS3pMMciC3Us4.csv
+            ...
+```
+
+- `playlists.csv` : a lookup of the playlist URI and the playlist name and description
+- `/features`: folder with an individual csv for each playlist, containing the audio features data.
+- `/artists`: folder with an individual csv for each playlist, containing data about each artist (can be multiple for each track).
+- `/tracks`: folder with an individual csv for each playlist, containing data about each track.
+
+#### `playlists.csv`
+
+Has consolidated information about each playlist.
+
+Primary Key:
+
+- `playlist_uri`: Spotify URI for the playlist. Also the title of corresponding CSV files.
+
+Other Attributes:
+
+- `title`: Title of the playlist
+- `description`: Description of the playlist
+- `url`: URL of the playlist
+
+After cleaning & consolidation:
+
+- `year`: Year of the chart
+- `chart`: `H100`, `ARIA` or `OTHER`
+
+
+#### `features/...`
+
+Has audio features for each track returned from the [Spotify Audio Features](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/) endpoint.
+
+*Primary Keys:*
+- `playlist_uri`: Spotify URI for the playlist
+- `uri`: Spotify URI of the track
+
+*Other Attributes:*
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `duration_ms`
+- `key`
+- `mode`
+- `time_signature`
+- `acousticness`
+- `danceability`
+- `energy`
+- `instrumentalness`
+- `liveness`
+- `loudness`
+- `speechiness`
+- `valence`
+- `tempo`
+
+#### `tracks/...`
+
+Idenitifying information about each track, as returned from the [Spotify Get Tracks](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-tracks/) endpoint.
+
+*Note: Tracks can have multiple artists. The CSV has been formatted to have an entry for each listed artist of the track.*
+
+*Primary Keys:*
+
+- `playlist_uri`: Spotify URI for the playlist
+- `uri`: Spotify URI of the track
+- `artist`: name of a featuring artist
+- `artist_uri`: Spotify URI of the artist
+
+*Other Attributes:*
+
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `album`: name of the album
+- `album_uri`: Spotify URI for the album
+- `disc_number`
+- `duration_ms`
+- `name`
+- `popularity`
+- `explicit`
+- `uri`
+- `link`: renamed from `href`
+
+
+#### `artists/...`
+
+Idenitifying information about each artist, as returned from the [Spotify Get Artists](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-artists/) endpoint.
+
+*Note: Genres for each artist are comma separated and should be expanded*
+
+*Primary Keys:*
+
+- `uri`: Spotify URI of the artist
+
+*Other Attributes:*
+
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `name`: name of the artist
+- `followers`: Number of followers
+- `popularity`
+- `uri`
+- `genres`: comma separated string of genres
+- `link`: renamed from `href`
+
+
+##### Data Cleaning & Consolidation
+
+After the above process, we had to get the data into R and create our dataframes. Since the data coming from the Spotify API is reliable and clean, most of the work involves merging together the data from the separate csvs into a single dataframe. Our process is outlined below.
+
+
+#### Import CSV
+
+First, let's get the `playlists.csv` file which has information about all the playlists included in the dataset.
+
+```{r , reading-data, message = FALSE, warning  = FALSE, eval = TRUE, echo = TRUE}
+playlist_data <- read_csv(here::here('Data/playlists.csv'))
+
+features_data <-
+    list.files(path = here::here('Data/features'),
+               pattern = "*.csv",
+               full.names = T) %>%
+    map_df(~read_csv(.))
+
+tracks_data <-
+    list.files(path = here::here('Data/tracks'),
+               pattern = "*.csv",
+               full.names = T) %>%
+    map_df(~read_csv(.))
+
+artists_data <-
+    list.files(path = here::here('Data/artists'),
+               pattern = "*.csv",
+               full.names = T) %>%
+    map_df(~read_csv(.))
+
+glimpse(playlist_data)
+glimpse(features_data)
+glimpse(tracks_data)
+glimpse(artists_data)
+```
+
+
+#### Extracting Info From Playlist Titles
+
+We need to extract the year of the playlist and also whether it was for the `Hottest 100` of `ARIA Chart`. We can give these the flags `H100` and `ARIA`.
+
+```{r extract-playlist-info, echo=TRUE}
+playlist_data <- playlist_data %>%
+  mutate(year = as.numeric(str_extract(title, "\\d{4}$"))) %>%
+  mutate(chart = as.factor(if_else(
+    grepl("ARIA", title, fixed = TRUE),
+    "ARIA",
+    if_else(grepl("Hottest 100", title, fixed = TRUE),
+            "H100",
+            "OTHER")
+  )))
+
+head(playlist_data) %>% tibble()
+```
+
+#### Write To CSV
+
+We can now write the consolidated dataframes to csvs for submission.
+
+```{r write-to-csv, echo=TRUE, eval = FALSE}
+write.csv(playlist_data,file = here::here('/Data/cleaned/playlists.csv'))
+write.csv(features_data,file = here::here('/Data/cleaned/features.csv'))
+write.csv(tracks_data,file = here::here('/Data/cleaned/tracks.csv'))
+write.csv(artists_data,file = here::here('/Data/cleaned/artists.csv'))
+
+```
+
+
+```{r import-data}
+custom_palette_all <- c("#f94144","#f3722c","#f8961e","#f9844a","#f9c74f","#90be6d","#43aa8b","#4d908e","#577590","#277da1")
+custom_palette_single_10 <- c("#d8f3dc","#b7e4c7","#95d5b2","#74c69d","#52b788","#40916c","#2d6a4f","#1b4332","#081c15")
+custom_palette_two <- c('#43aa8b', '#4d908e')
+custom_palette_opposites <- c('#f9c74f', '#43aa8b')
+
+
+playlist_data <- read_csv(here::here('Data/cleaned/playlists.csv'))
+artists_data <- read_csv(here::here('Data/cleaned/artists.csv'))
+tracks_data <- read_csv(here::here('Data/cleaned/tracks.csv'))
+features_data <- read_csv(here::here('Data/cleaned/features.csv'))
+features_data <- features_data %>% left_join(playlist_data %>% select(playlist_uri, chart, year))
+```
+
+
+
+The Present
+=====================================
+
+Column
+-------------------------------------
+
+#### The Present Day - 2019 ARIA Chart
+
+Let's first have a look at what the charts are like in the present day. The 2020 charts have not been finalised yet, so we're analysing the top 100 songs from the ARIA Chart of 2019.
+
+<iframe src="https://open.spotify.com/embed/playlist/5mLdKSsYO0gt69XoWXxTU8" style="border: 0; width: 100%; height: 380px;" allowfullscreen allow="encrypted-media"></iframe>
+
+### {.description .mt-bg} 
+
+##### Top Artists
+
+The table depicts the Top 10 artists from year 2019 that appeared on the Top 100s ARIA chart. From the table we can conclude that Post Malone is the most popular artist with 7 tracks released on 2019. Following Post Melone, Ed Sheeran and Khalid are the next top artists with 6 tracks published in the year 2019. Conversely, artists with 3 tracks published on the year 2019 made to the bottom list of top 10. 
+
+### Top 10 Genres {.hide-title}
+
+```{r}
+top_10_aria_2019 <- features_data %>% 
+  filter(chart == 'ARIA', year == '2019')%>% 
+  inner_join(tracks_data %>% select(uri, artist_uri, artist) %>% unique()) %>%
+  select(artist, year) %>%
+  group_by(artist) %>%
+  tally(name = 'No. of tracks')%>%
+  arrange(-`No. of tracks`)  %>%
+  rename(Artist = artist) %>%
+  select(Artist, `No. of tracks`)
+
+top_10_aria_2019%>%
+  head(10)%>%
+  kable(caption = "Top 10 artists of 2019 in ARIA chart")
+```
+
+### {.description .mt-bg} 
+
+##### Top Genres
+
+Evidently, the most prevalent genre in 2019 was `pop`, doubling the presence of the next most seen genre. A significant proportion of pop in 2019 can be potentially attributed to album releases of popular pop-centric artists such as **Taylor Swift**, **Ed Sheeran**, **Billie Eilish** and **Ariana Grande**. Each of the aforementioned artists had at least three tracks in the Top 100 Chart, totalling 17 tracks, making up 17% of the Top 100 Chart. Besides pop and its derivatives such as `dance pop` and `post-teen pop`, `rap` and `EDM` are present in the top 10 with artists such as **Post Malone** bolstering the Rap genre; and **Marshmello** and **Calvin Harris** helping to keep EDM within the Top 10. 
+
+### Top 10 Genres {.hide-title}
+
+```{r}
+
+artist_genres <- features_data %>% 
+  filter(chart == 'ARIA') %>%
+  left_join(playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% unique(), by = c("artist_uri" = "uri")) %>%
+  select(artist_uri, chart, year, genres) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",") %>%
+  group_by(year, genres) %>% tally(name='count')
+
+artist_genres_formatted <- artist_genres %>% 
+  group_by(year) %>%
+    mutate(rank = rank(-count),
+         Value_rel = count/count[rank==1],
+         Value_lbl = paste0(" ",round(count))) %>%
+  group_by(genres) %>%
+  filter(rank <= 10) %>%
+  arrange(rank) %>%
+  ungroup()
+
+artist_genres_formatted_2019 <- artist_genres_formatted %>%
+  filter(year == 2019)
+
+fig_top_10_genres_2019 <- plot_ly(artist_genres_formatted_2019, x = ~genres, y=~count, name = 'Genres', type = 'bar', color = 1, colors = custom_palette_single_10) %>%
+  layout(
+     title = "ARIA's Top 10 Genres of 2019",
+     xaxis = list(title = "",
+     categoryorder = "array",
+     categoryarray = ~rank),
+     yaxis = list(title = "Count")) %>%
+    hide_colorbar()
+
+fig_top_10_genres_2019
+```
+
+> Spotify associates multiple genres with each artist, and each track can feature multiple artists with their genres weighted equally for this chart.
+
+### {.description .mt-big}
+
+##### Analysing Feature Distribution 
+
+We can see from this figure that for songs that were popular in 2019, the median levels of danceability and energy were relatively high, compared to levels of acousticness, instrumentalness, liveness and speechiness. This indicates that Australians generally preferred songs that feel energetic and are suitable for dancing. When looking at the median level of valence and the whiskers, there seems to be an approximately even split between preference for songs that sound more positive compared to songs that sound more negative. There is greater variance among the middle 50% of the data for valence in particular, and this is slightly skewed towards the lower values, indicating the existience of a slightly higher concentration of popular songs in 2019 that sounded more negative.
+
+### Feature Distribution {.hide-title}
+
+```{r}
+track_features <- 
+  left_join(features_data, playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  mutate(decade = paste(as.character(year - (year %% 10)), "s", sep="")) %>% 
+  filter(chart == 'ARIA') %>%
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% 
+  unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+features_long <- pivot_longer(
+                  track_features,
+                  cols = c('acousticness', 'danceability', 'energy', 'instrumentalness', 
+                           'liveness', 'loudness', 'speechiness', 'valence', 'tempo'), 
+                  names_to = 'feature', 
+                            values_to = 'value')
+
+p_19 <- ggplot(data = features_long %>% 
+                        filter(year == 2019, 
+                        feature %in% c('acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence')), 
+                        aes(x = feature, y = value, fill = feature)) + 
+        geom_boxplot() +
+        scale_fill_manual(values = custom_palette_all) +
+        theme(axis.text.x = element_blank()) +
+        labs(title = "Distribution Of Features In 2019", x ="Feature", y = "Value", fill = "Feature")
+
+fig_19 <- ggplotly(p_19)
+
+fig_19
+```
+
+Trends Over Time
+=====================================
+
+Column
+-------------------------------------
+
+#### Australia's Changing Music Taste
+
+Since the 1970s, technology, culture and fashion have changed drastically. Australian music trends have also changed as popular music trends in the 1970s are rarely seen in the present day. We have investigated genres, artists and audio features (duration, key, mode, time signature, acousticness, speechiness, danceability, energy, loudness, valence/happiness and tempo) from 1970 to 2019 to analyse these changes. Let's take a look at how the ARIA charts have evolved over time. Here's what the ARIA chart looked like in 1970:
+
+<iframe src="https://open.spotify.com/embed/playlist/6YKI2VYSO9iZtyaLb3ZUsG" style="border: 0; width: 100%; height: 380px;" allowfullscreen allow="encrypted-media"></iframe>
+
+### {.description .mt-big}
+
+##### Development Of Genres
+
+The animation below shows the rise and fall of genres on the ARIA chart between 1970 and present. At the beginning, genres such as soft rock and folk rock dominated the chart. The 80's were all about new wave pop with europop make an entrance in the 90s.
+
+With the turn of the millenium came the dominance of pop in the charts in all its variations. We see new genres like hip-hop and rap also make an entrance. EDM begins to enter the chart around the turn of the 2010s, and with it came electro-pop and a bunch electronic variations such as house. 
+
+<figure class="video_container">
+  <video controls="true" allowfullscreen="true">
+    <source src="https://kalana.io/p/aria-chart-years.mp4" type="video/mp4">
+  </video>
+</figure>
+
+```{r, eval = FALSE}
+artist_genres <- features_data %>% 
+  filter(chart == 'ARIA') %>%
+  left_join(playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% unique(), by = c("artist_uri" = "uri")) %>%
+  select(artist_uri, chart, year, genres) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",") %>%
+  group_by(year, genres) %>% tally(name='count')
+
+artist_genres_formatted <- artist_genres %>% 
+  group_by(year) %>%
+    mutate(rank = rank(-count),
+         Value_rel = count/count[rank==1],
+         Value_lbl = paste0(" ",round(count))) %>%
+  group_by(genres) %>%
+  filter(rank <= 30) %>%
+  ungroup()
+  
+staticplot = ggplot(artist_genres_formatted, aes(rank, group = genres,
+                fill = as.factor(genres), color = as.factor(genres))) +
+  geom_tile(aes(y = count/2,
+                height = count,
+                width = 0.9), alpha = 0.8, color = NA) +
+  geom_text(aes(y = 0, label = paste(genres, " ")), vjust = 0.2, hjust = 1,  size=10) +
+  geom_text(aes(y=count,label = Value_lbl, hjust=0)) +
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_reverse() +
+  guides(color = FALSE, fill = FALSE) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+         axis.title.y=element_blank(),
+        legend.position="none",
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_line( size=.1, color="grey" ),
+        plot.title=element_text(size=30, hjust=0.5, face="bold", colour="grey", vjust=-1),
+        plot.subtitle=element_text(size=22, hjust=1, face="italic", color="grey"),
+        plot.caption =element_text(size=12, hjust=0.5, face="italic", color="grey"),
+        plot.background=element_blank(),
+       plot.margin = margin(2,2, 2, 15, "cm"))
+
+anim = staticplot + transition_states(year, transition_length = 4, state_length = 1) +
+  view_follow(fixed_x = TRUE)  +
+  labs(title = 'ARIA Chart : {closest_state}',
+       subtitle  =  "Top 10 Genres",
+       caption  = "Genres of Charting Artists | Data Source: Spotify")
+
+animate(anim, 900, fps = 20,  width = 1200, height = 3000, start_pause =  15,
+         renderer = gifski_renderer("gganim.gif"))
+```
+
+### {.description .mt-big}
+
+##### Analysing Feature Distribution 
+
+By examining the distribution of features over time, we can see that:
+- levels of acousticness and instrumentalness have been trending downwards since the 1970s
+- levels of liveness and speechiness have generally remained the same since the 1970s
+- levels of danceability and energy have been trending upwards since the 1970s
+- the level of valence has risen and dipped a few times over the decades
+
+From these observations, we can see that acoustic songs and songs that contain no vocals have become less popular over time, while songs that feel energetic and are suitable for dancing have gained more popularity over time. Interestingly, the level of valance over time does not seem to have a clear trend, so we will examine this in detail later on.
+
+### Feature Distribution {.hide-title}
+
+```{r}
+track_features <- 
+  left_join(features_data, playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  mutate(decade = paste(as.character(year - (year %% 10)), "s", sep="")) %>% 
+  filter(chart == 'ARIA') %>%
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% 
+  unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+features_long <- pivot_longer(
+                  track_features,
+                  cols = c('acousticness', 'danceability', 'energy', 'instrumentalness', 
+                           'liveness', 'loudness', 'speechiness', 'valence', 'tempo'), 
+                  names_to = 'feature', 
+                            values_to = 'value')
+
+fig <- plot_ly(data = features_long %>% 
+                filter(feature %in% c('acousticness', 'danceability', 'energy', 'instrumentalness', 
+                                      'liveness', 'speechiness', 'valence')),
+                 x = ~decade, 
+                 y = ~value, 
+                 color = ~feature, 
+                 type = "box", 
+                 colors = custom_palette_all)
+
+fig <- fig %>% layout(title = "Distribution Of Features By Decade Over Time",
+                      xaxis = list(title = "Decade"),
+                      yaxis = list(title = "Value"),
+                      boxmode = "group")
+
+fig
+```
+
+### {.description .mt-big}
+
+##### Changes In Track Happiness (Valence) 
+
+Upon closer inspection of the distribution of valence among popular songs over time, it seems that there is actually more of a U-shaped trend, rather than a series of ups and downs, in median valence over time. Overall, in all other decades, the level of valence is lower than that in the 1970s. Although there has been a slight upwards trend within the last decade, the level of valence has not risen to anywhere near the same level it was at in the 1970s. These observations indicate that Australians generally preferred more happy, cheerful or euphoric sounding songs in the 70s, but over time, sad, depressed or angry sounding songs have gained much more prevalence and resonated with more Australians.
+
+### Valence {.hide-title}
+
+```{r}
+track_features <- 
+  left_join(features_data, playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  mutate(decade = paste(as.character(year - (year %% 10)), "s", sep="")) %>% 
+  filter(chart == 'ARIA') %>%
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% 
+  unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+features_long <- pivot_longer(
+                  track_features,
+                  cols = c('acousticness', 'danceability', 'energy', 'instrumentalness', 
+                           'liveness', 'loudness', 'speechiness', 'valence', 'tempo'), 
+                  names_to = 'feature', 
+                            values_to = 'value')
+
+fig_val <- plot_ly(data = features_long %>% filter(feature == 'valence'), 
+               x = ~year, 
+               y = ~value, 
+               color = ~decade,
+               type = "box",
+               colors = custom_palette_all)
+
+fig_val <- fig_val %>% layout(title = "Distribution of Valence Over Time",
+                      xaxis = list(title = "Year", dtick = 5, tick0 = 1970, tickmode = "linear"),
+                      yaxis = list(title = "Value"))
+
+fig_val
+```
+
+
+
+### {.description .mt-big}
+
+##### Changes In Loudness
+
+Let's closely examine the distribution in the level of loudness for popular songs over time. Note that this feature was not included in previous figures since Spotify measures loudness on a different scale compared to the other features, so it was difficult to show loudness in the same figure as other features for comparison. We can see that there has has generally been an upwards trend in median loudness over time, with less and less variance among the middle 50% of the data as time has progressed. These observations indicate that loud songs have gained more popularity over time, and in the last 1-2 decades, popular songs have had less dynamic range, with the majority being relatively louder overall. One possible explanation for this trend is, since the 1980s, the music industry has been using a production technique called "dynamic range compression" to make songs appear louder and more impactful to listeners. [Source](https://www.bbc.com/news/entertainment-arts-35250557)
+
+### Loudness {.hide-title}
+
+```{r}
+track_features <- 
+  left_join(features_data, playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  mutate(decade = paste(as.character(year - (year %% 10)), "s", sep="")) %>% 
+  filter(chart == 'ARIA') %>%
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% 
+  unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+features_long <- pivot_longer(
+                  track_features,
+                  cols = c('acousticness', 'danceability', 'energy', 'instrumentalness', 
+                           'liveness', 'loudness', 'speechiness', 'valence', 'tempo'), 
+                  names_to = 'feature', 
+                            values_to = 'value')
+
+fig_loud <- plot_ly(data = features_long %>% filter(feature == 'loudness'), 
+               x = ~year, 
+               y = ~value, 
+               color = ~decade,
+               type = "box",
+                 colors = custom_palette_all)
+
+fig_loud <- fig_loud %>% layout(title = "Distribution of Loudness Over Time",
+                      xaxis = list(title = "Year", dtick = 5, tick0 = 1970, tickmode = "linear"),
+                      yaxis = list(title = "Decibels (dB)"))
+
+fig_loud
+```
+
+
+### {.description .pt-bg}
+
+##### Relationship Between Genre and Loudness
+
+###### Pop
+
+Now looking at the loudness of both the ARIA and Top100 charts over time of the top 10 genres by the number of songs throughout all the years, it was found that every genre is increasing over time except for pop rap and post teen pop. 
+
+### Title {.hide-title}
+
+```{r}
+  
+Features_Playlist <- features_data %>%
+  left_join(playlist_data)
+
+
+Features_Playlist_Artist <- features_data %>%
+left_join(playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+Features_Playlist_Artist_One <- Features_Playlist_Artist%>%
+  mutate(One=1)
+
+Top_Genre <- Features_Playlist_Artist_One%>%
+  group_by(genres)%>%
+  summarise(n=sum(One))%>%
+  arrange(desc(n))%>%
+  top_n(10)
+
+
+Top_Genre_Vector <- Top_Genre$genres
+
+
+New_Features_Playlist_Artist_One <- Features_Playlist_Artist_One%>%
+  filter(genres==Top_Genre_Vector)
+
+B <-New_Features_Playlist_Artist_One %>%
+  filter(genres %in% c("australian pop", "dance pop", "mellow gold", "pop", "pop rap", "post-teen pop") )%>%
+  ggplot(aes(x=year, y=loudness, color=genres))+
+  geom_point(alpha=0.4)+
+  geom_smooth(method="lm", se=FALSE)+
+  facet_wrap(~genres)
+
+ggplotly(B)
+```
+
+### {.description .pt-bg}
+
+###### Rock
+
+Based on speculation, because the rock genre (except for modern rock) has more observations in the earlier years while pop is more heavily concentrated in the latter years, the increase in the loundness of rock may be due to the fact that they are becoming louder to match the loudness of the new pop songs. This is to maintain their genre of being loud and energetic. This is further highlighted by the fact that rock recieved the steepest increase in loudness throughout the years as shown by a higher coefficient in the linear regression model. 
+
+### Title {.hide-title}
+
+```{r}
+Features_Playlist <- features_data %>%
+  left_join(playlist_data)
+
+
+Features_Playlist_Artist <- features_data %>%
+left_join(playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, genres) %>% unique(), by = c("artist_uri" = "uri")) %>%
+  na.omit() %>%
+  separate_rows(genres, sep = ",")
+
+
+Features_Playlist_Artist_One <- Features_Playlist_Artist%>%
+  mutate(One=1)
+
+Top_Genre <- Features_Playlist_Artist_One%>%
+  group_by(genres)%>%
+  summarise(n=sum(One))%>%
+  arrange(desc(n))%>%
+  top_n(10)
+
+
+Top_Genre_Vector <- Top_Genre$genres
+
+
+New_Features_Playlist_Artist_One <- Features_Playlist_Artist_One%>%
+  filter(genres==Top_Genre_Vector)
+
+
+
+A <- New_Features_Playlist_Artist_One %>%
+  filter(genres %in% c("modern rock", "pop rock", "rock", "soft rock") )%>%
+  ggplot(aes(x=year, y=loudness, color=genres))+
+  geom_point(alpha=0.4)+
+  geom_smooth(method="lm", se=FALSE)+
+  facet_wrap(~genres)
+
+ggplotly(A)
+```
+
+
+### {.description .pt-bg}
+
+##### The Chart Hoarders
+
+The interactive graph represents the top 20 artists in ARIA chart of all years. The size of each scatter plot depicts the total number of charts released by each artists in the respective years. By hovering upon each points we can find accurately the number of tracks released by each artists. The most popular artists with 8 number of tracks published are Post Malone and Khalid in the year 2018. Whilst most the artists appear in the latest years, ABBA is the only artist from years 1974-1981 that made to the top 20 list of all time. Additionally, we can see from the plot that the points are clustered in the years ranging from early 2000s to 2019. This illustrates that artists who have made their appearance in the recent years tend to stay longer compared to artists in late 90s. In other words, it is easier for artists to remain on the charts once they make it in. 
+
+### Title {.hide-title}
+
+```{r}
+top_20_aria <- features_data %>% 
+  filter(chart == 'ARIA')%>% 
+  inner_join(tracks_data %>% select(uri, artist_uri, artist) %>% unique()) %>%
+  select(artist_uri, year, artist) %>%
+  group_by(artist_uri, year, artist) %>%
+  tally(name = 'Total tracks')%>%
+  arrange(-`Total tracks`) %>%
+  select(artist, `Total tracks`, year) %>%
+  head(20)
+
+
+top_aria_artists_by_year<- features_data %>% 
+  filter(chart == 'ARIA') %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri, artist) %>% unique()) %>%
+  select(artist_uri, year, artist) %>%
+  group_by(artist_uri, year, artist) %>%
+  tally(name = 'Total tracks') %>%
+  select(artist, `Total tracks`) %>%
+  filter(artist %in% (top_20_aria$artist %>% head(20)))
+
+f1 <-  list(family = "Arial, sans-serif", size = 18, color = "grey")
+
+plot_ly(top_aria_artists_by_year,  x = ~year, y = ~artist, type = 'scatter', 
+        size = ~`Total tracks`, colors = custom_palette_all, color = ~artist,  
+        showlegend = FALSE,
+        text = ~paste("Tracks count: ",`Total tracks`) 
+        ) %>%
+  layout( title = "Top 20 popular artists of all time in ARIA chart",
+          yaxis = list(title = 'Artist', titlefont = f1), 
+          xaxis = list(title = 'Year', titlefont = f1, ticks = "outside", dtick = 5, autotick = FALSE))
+```
+
+ARIA vs Hottest 100
+=====================================
+
+Column
+-------------------------------------
+
+#### Comparing Charts - ARIA vs Hottest 100
+
+The ARIA charts are a record of the highest selling songs and albums in various genres in Australia, and therefore are more representative of the tastes of audiences nation-wide. The Hottest 100 however, is targeted towards the alternative listener - to be representative of the tastes of the cultured youth of Australia. The chart often features more independent and homegrown artists, and over the years has earned a cult status, with the annual day-long broadcast being hearalded a national event.
+
+So, how do these charts compare? We wanted to analyse how these two charts were related. Here's what the 2019 Hottest 100 looked like:
+
+<iframe src="https://open.spotify.com/embed/playlist/2fvJzgA7Sajgj8tjPxvFQK" style="border: 0; width: 100%; height: 380px;" allowfullscreen allow="encrypted-media"></iframe>
+
+### {.description .pt-bg}
+
+##### Artist Popularity Between Charts
+
+We then examined whether the popularity of the artists differ between the two charts. The artist popularity metric is one supplied by Spotify, and refers to a value between 0 and 100, with 100 being the most popular. The artist’s popularity is calculated from the popularity of all the artist’s tracks. We can see a distinct difference in the distributions of artist popularity between the two charts.
+
+This supports the idea that the Hottest 100 is representative of a nicher group of _alternative_ music listeners.
+
+### Title {.hide-title}
+
+```{r}
+popularity_data <- features_data %>% 
+  left_join(playlist_data %>% select(playlist_uri, chart, year)) %>% 
+  inner_join(tracks_data %>% select(uri, artist_uri)) %>% 
+  left_join(artists_data %>% select(uri, popularity), by = c("artist_uri" = "uri")) %>%
+  select(artist_uri, chart, popularity) %>%
+  na.omit()
+
+popularity_aria <- popularity_data %>% 
+  filter(chart == 'ARIA') %>% 
+  filter(popularity > 0) 
+
+popularity_h100 <- popularity_data %>% 
+  filter(chart == 'H100') %>% 
+  filter(popularity > 0)
+
+plot_ly(alpha = 0.8, histnorm = "probability", nbinsx = 40, colors = custom_palette_two) %>%
+  add_histogram(data = popularity_aria, x = ~popularity, name = 'ARIA', color = 1) %>%
+  add_histogram(data = popularity_h100, x = ~popularity, name = 'Hottest 100', color = 2) %>%
+    layout(barmode = "overlay",
+           title = "Frequency distribution of artist popularity across charts",
+         xaxis = list(title = "Popularity",
+                      zeroline = FALSE),
+         yaxis = list(title = "Frequency",
+                      zeroline = FALSE)) %>%
+  hide_colorbar()
+```
+
+> Popularity data as of September 2020.
+
+
+### {.description .pt-bg }
+
+##### Feature Distribution Between Charts
+
+We grouped the different features of each track over all time periods into the two separate charts `ARIA` and `H100` to examine if there were any major differences in their distributions.  We can see that tracks in the Hottest 100 are less danceable, have more energetic elements and are likely to sound sadder (valence) on average.
+
+### Title {.hide-title}
+
+```{r}
+normalised_feature_names <- c('acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence')
+
+plot_ly(data = features_data %>% 
+  pivot_longer(
+    cols = all_of(normalised_feature_names), 
+    names_to = 'feature', 
+    values_to = 'value'
+    ), type = 'box', colors = custom_palette_opposites) %>%
+  add_trace(y = ~value, x = ~feature, color = ~chart) %>%
+  layout(xaxis = list(title = 'Feature'), yaxis = list(title = 'Score'), boxmode = "group",
+                    title = "Feature distribution between charts") %>%
+  hide_colorbar()
+```
+
+> Plotted features are calculated by Spotify using [this](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/) API endpoint and can range between 0 - 1.
+
+
+### {.description .pt-bg }
+
+##### Artist Crossover
+
+To analyse artist crossover between charts we looked at what tracks featured on both charts since 1993, the beginning of Hottest 100 playlists. From the playlist and tracks data we determined which tracks featured on both charts and then, grouping by artist, we were able to determine how many tracks each artist had feature on both charts. 
+From the graph above we can see that Post Malone and The offspring have the most tracks featuring on both charts, Post Malone with the highest at 9 tracks featuring on both Charts. Of these top 20 artists it can be noted that many of them can be considered 'mainstream' artists, so from this graph it can be observed that it is more likely for an artist's track to feature on both charts if they are a well-known, mainstream artist while also matching the sound and genre which is popular within the more local Australian Triple J community.
+
+### Title {.hide-title}
+
+```{r}
+CROSSOVER <- tracks_data %>%
+  left_join(playlist_data %>% select(playlist_uri, chart, year))
+
+tracks_H100 <- CROSSOVER %>%
+  filter(chart == "H100")
+
+tracks_ARIA <- CROSSOVER %>%
+  filter(chart == "ARIA")
+both_u <- inner_join(tracks_ARIA, tracks_H100 %>% select(uri) %>% unique()) %>%
+  subset(select = -c(X1) )
+
+artist_chart_count_20 <- both_u %>%
+  group_by(artist_uri) %>%
+  tally(name = 'Total Charts') %>%
+  left_join(artists_data %>% select(uri, name) %>% unique(), by = c('artist_uri' = 'uri')) %>%
+  arrange(- `Total Charts`) %>%
+  rename(Artist = name) %>%
+  select(Artist, `Total Charts`) %>%
+  head(20)
+
+x <- list(
+  title = "Artist")
+  
+y <- list(
+  title = "Total Charting Tracks")
+
+plot_ly(artist_chart_count_20, 
+        x = ~reorder(Artist, -`Total Charts`),
+        y = ~`Total Charts`,
+        type = 'bar',
+        textposition = 'auto', marker = list(color = '#4d908e')) %>%
+  layout(title = 'Artists With the Most Tracks Featuring in Both Charts', xaxis = x, yaxis = y)
+```
+
+### {.description .pt-bg }
+
+##### Genres In Common
+
+From the investigation into tracks featuring on both charts and which artists had the most tracks featuring on both we then looked into what genre the top 20 artists were categorised in to. This graph represents how many times each genre was used to describe each track that featured on both charts. Note the genre is not specific to the song but specific to the artist, and an artist can be categorised under many genres.
+
+From the graph we can see that Pop and Rock were the two most common genre descriptions, the third highest being Rap although this was used significantly less times as a genre description than pop and rock. This indicates that most of the artists
+Referring back to the graph above, Top artists with Featuring tracks, of the top five artists to have featuring tracks only one of those artist's genre (Khalid) is described as 'Pop'. This suggests that many of the lower featuring artists are described as pop or rock artists compared to those with higher feature numbers who are described as rap or some form of alternative, but it is harder for artists of rock or alternative genre's to feature on both charts unless they are of high status or are a large mainstream artist, like Post Malone.
+
+### Title {.hide-title}
+
+```{r}
+artist_data <- artists_data %>% rename(Artist = name)
+
+artist_genres_20 <- artist_chart_count_20 %>%
+  inner_join(artist_data) %>% unique()
+
+artist_genres_split_20 <- artist_genres_20 %>%
+    mutate(genres = strsplit(as.character(genres), ",")) %>%
+  unnest(genres)
+
+top_20_genre_crossover <- artist_genres_split_20 %>%
+  group_by(genres) %>%
+  tally(name = "Genre Total") %>%
+  arrange(-`Genre Total`) %>%
+  head(20)
+
+xx <- list(
+  title = "Genre")
+  
+yy <- list(
+  title = "Total Genre Count")
+
+
+plot_ly(top_20_genre_crossover, 
+        x = ~reorder(genres, -`Genre Total`),
+        y = ~`Genre Total`,
+        type = 'bar',
+        textposition = 'auto',
+        marker = list(color = '#4d908e')) %>%
+  layout(title = 'Common Genres of Tracks Featuring in Both Charts', xaxis = xx, yaxis = yy)
+```
+
+### {.description .pt-bg }
+
+##### Artists With Highest Features
+
+This graph shows the top artists with the highest total number of charting songs, given that the artist had at least one song feature on each of the two charts at some point in their career. Looking at the graph we can see that there are a number of artists. The graph being positively scewed indicates that a lot of artists have had one or two featuring track on Triple J Hottest 100 and then proceeded to have multiple songs chart on the ARIA Top 100 charts. This is most likely due to the nature of the Hottest 100 chart, as this is a local Australian station where a lot of alternative and up and coming artists's tracks are played. It is likely that for some of these artists they had a break out song on the Hottest 100 charts and then possibly moved more into the pop genre, releasing more mainstream radio songs resulting in them featuring on Hottest 100 charts less than ARIA charts.
+
+### Title {.hide-title}
+
+```{r}
+ARIA_track_count <- tracks_ARIA %>%
+  group_by(artist_uri) %>%
+  tally(name = 'ARIA Total Charts') %>%
+  left_join(artists_data %>% select(uri, name) %>% unique(), by = c('artist_uri' = 'uri')) %>%
+  arrange(- `ARIA Total Charts`) %>%
+  rename(Artist = name) %>%
+  select(Artist, `ARIA Total Charts`)
+
+H100_track_count <- tracks_H100 %>%
+  group_by(artist_uri) %>%
+  tally(name = 'H100 Total Charts') %>%
+  left_join(artists_data %>% select(uri, name) %>% unique(), by = c('artist_uri' = 'uri')) %>%
+  arrange(- `H100 Total Charts`) %>%
+  rename(Artist = name) %>%
+  select(Artist, `H100 Total Charts`)
+
+artists_both_charts <- na.omit(full_join(H100_track_count, ARIA_track_count)) %>%
+  mutate(Total = `H100 Total Charts` + `ARIA Total Charts`) %>%
+  arrange(-Total)
+
+xxx <- list(
+  title = "Hottest 100 Features")
+  
+yyy <- list(
+  title = "ARIA Features")
+
+plot_ly(artists_both_charts, x = ~`H100 Total Charts`, y = ~`ARIA Total Charts`,text = ~Artist, type = 'scatter', mode = 'markers',
+        marker = list(color = '#4d908e', size = ~Total, opacity = 0.8)) %>%
+  layout(title = 'Distribution of Artist Features in ARIA and Hottest 100 Charts', xaxis = xxx, yaxis = yyy)
+```
+
+
+Text Analysis
+=====================================
+
+Column
+-------------------------------------
+
+#### Analysing Track Titles
+
+Song titles draw a listener’s attention and explain the message behind the entire song. In this section, we will break down what words that are frequently used in song titles and their positive or negative sentiments to analyse if popular songs follow any trends when setting a song name.
+
+### {.description .pt-bg }
+
+##### 30 Most Common Words in Song Titles 
+
+We analysed the frequently used words in the top songs every year to observe if there were popular words. The following graph ranks the 30 most common words used in song titles, from the most to least frequents. The word "love" is significantly more commonly used, appearing 365 times in titles. Girl, the second most common word appears only 71 times, highlighting the overwhemling use of the word "love". An interesting observation is that "girl" was used more frequently then "boy", appearing twice as much. It also appears that 7 is the most popular number, which may be due to this popularity world-wide as there are 7 days ot the week, 7 continents and other examples of 7 being a lucky or unique number. Night is also more popular than day and black and blue appear to be the more common colours used in titles. 
+
+### Title {.hide-title}
+```{r}
+tracks_name <- tracks_data %>% 
+  left_join(playlist_data) %>%
+  select(name,year) %>% 
+  distinct() %>% 
+  arrange(year) 
+
+unnested_names <- tracks_name %>% 
+  unnest_tokens(
+    output = word, 
+    input = name, 
+    token = "words")
+stopwords <- get_stopwords(source = "smart")
+
+remove_words <- c("feat", "edit", "radio", "version", "single", "mix", "remastered","remaster", "song", "original", "remix", "soundtrack")
+
+ordered_names <- unnested_names %>% 
+  anti_join(stopwords) %>%
+  filter(!( word %in% remove_words)) %>%
+  count(word) %>% 
+  arrange(-n) %>% 
+  mutate(count = as.numeric(n))   
+
+common_words <- ordered_names[1:30,] %>% 
+  ggplot(aes(x =  count,
+             y = reorder(word, count))) + 
+  geom_col()  + 
+  labs(x = "Count", 
+       y = "Words") + 
+  ggtitle("30 Most Common Words in Song Titles") + 
+  theme_minimal() 
+ggplotly(common_words)
+
+```
+
+### {.description .pt-bg }
+
+##### Sentiment Analysis
+
+When the common words are separated according to whether they have positive or negative sentiments, it is observed that most words fall in the positive category. The most common positive word, "love" is used 365 times as previously stated, while "bad", the most common negative word, appears only 33 times. Even positive words "good" and "beautiful" are most commonly used than "bad". Through this, we can determine that the most popular songs in Australia, favour more positively associated words in their titles.  
+
+### Title {.hide-title}
+```{r}
+bing <- get_sentiments(lexicon = "bing")
+
+bing_words <- ordered_names  %>%
+  inner_join(bing) %>% 
+  arrange(-count) %>% 
+  group_by(sentiment) %>% 
+  slice(1:20) %>%
+  ungroup() %>%
+  ggplot(aes(count, fct_reorder(word,count), fill = sentiment)) +
+  geom_col() +
+  facet_wrap(~sentiment, scales = "free") + 
+  labs(x = "Count", 
+       y = "Words") +
+  ggtitle("Common Words divided according to Sentiment") +
+  scale_fill_manual(values = custom_palette_opposites) + 
+  theme_bw()
+ggplotly(bing_words)
+
+```
+
+
+References
+=====================================
+
+Column
+-------------------------------------
+
+#### References
+
+- C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC Florida, 2020.
+- Emil Hvitfeldt (2020). textdata: Download and Load Various Text Datasets. R package version 0.4.1. https://github.com/EmilHvitfeldt/textdata 
+- Hadley Wickham and Dana Seidel (2020). scales: Scale Functions for Visualization. https://scales.r-lib.org/, https://github.com/r-lib/scales. 
+- Jeroen Ooms (2018). gifski: Highest Quality GIF Encoder. https://gif.ski/ (upstream), https://github.com/r-rust/gifski (devel). 
+- Kenneth Benoit, David Muhr and Kohei Watanabe (2020). stopwords: Multilingual Stopword Lists. R package version 2.0. https://github.com/quanteda/stopwords 
+- Kirill Müller (2017). here: A Simpler Way to Find Your Files. https://github.com/krlmlr/here, http://krlmlr.github.io/here. 
+- Richard Iannone, JJ Allaire and Barbara Borges (2020). flexdashboard: R Markdown Format for Flexible Dashboards. R package version 0.5.2. http://rmarkdown.rstudio.com/flexdashboard
+- Silge J, Robinson D (2016). “tidytext: Text Mining and Analysis Using Tidy Data Principles in R.” JOSS, 1(3). doi: 10.21105/joss.00037 (URL: https://doi.org/10.21105/joss.00037) 
+- Thomas Lin Pedersen and David Robinson (2020). gganimate: A Grammar of Animated Graphics. https://gganimate.com/, https://github.com/thomasp85/gganimate. 
+- Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, https://doi.org/10.21105/joss.01686 
+- Yihui Xie (2014) knitr: A Comprehensive Tool for Reproducible Research in R. In Victoria Stodden, Friedrich Leisch and Roger D. Peng, editors, Implementing Reproducible Computational Research. Chapman and Hall/CRC. ISBN 978-1466561595
+
+
+- ARIA Top 100 Singles Chart. (2020). Retrieved 4 October 2020, from https://www.aria.com.au/charts/2019/singles-chart 
+- Cox, T. (2016). Why is modern music so loud?. Retrieved 22 October 2020, from https://www.bbc.com/news/entertainment-arts-35250557
+- Get Audio Features for a Track | Spotify for Developers. (2020). Retrieved 4 October 2020, from https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/ 
+- Overview | Hottest 100 Archive | triple j. (2020). Retrieved 4 October 2020, from https://www.abc.net.au/triplej/hottest100/archive/

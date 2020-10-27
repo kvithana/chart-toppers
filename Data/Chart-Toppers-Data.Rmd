@@ -1,0 +1,239 @@
+---
+title: "Chart Toppers - Data Extraction & Analysis"
+author: "Discove-R-Weekly"
+date: "10/15/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, cache.lazy = FALSE )
+```
+
+
+```{r, message = FALSE, warning = FALSE}
+library(knitr)
+library(tsibble)
+library(here)
+library(tidyverse)
+```
+## What the ARIA charts and Hottest 100 say about Australia's changing music tastes.
+
+Our team aims to investigate how Australian music tastes have changed over time by comparing the audio features of tracks from the yearly ARIA and Triple-J hottest 100 charts from 1970-2019. We will be using the Spotify API to map the tracks from the charts to its corresponding Spotify URI, allowing us to analyse individual tracks against key attributes: duration, key, mode, time signature, acousticness, speechiness, danceability, energy, loudness, valence/happiness and tempo. 
+
+The documentation for the endpoint we are using to get the analysis data is available [here](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/).
+We are sourcing the ARIA charts and Triple J Hottest 100 rankings from these sites: 
+
+- https://www.aria.com.au/charts/2019/singles-chart
+- https://en.wikipedia.org/wiki/Triple_J_Hottest_100
+
+## Data Sourcing
+
+The data was sourced through calling the above endpoint of the Spotify API. This was done by using their Javascript client libraries since it was what we were most familiar with. 
+
+The source code for pulling data from Spotify is available on Github [here](https://github.com/kvithana/spotify-audio-features-to-csv).
+
+We created or sourced a Spotify playlists which included the songs for each year's charts from 1970 - 2019. This playlist could then be passed to the CLI tool.
+
+Given a list of playlist URIs or URLs in a `.txt` file, the program will get the tracks associated with that playlist, and call the [Spotify Audio Features](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/) endpoint to get insightful information about the tracks.
+
+This data was outputted in csv format into the following structure:
+```
+└───data
+    │   playlists.csv
+    │
+    ├───features
+    │       0hIiy3ihpzsIX9Dd6RVtWw.csv
+    │       0kgHtoYJSMS3pMMciC3Us4.csv
+    │       ...
+    │
+    ├───artists
+    │       0hIiy3ihpzsIX9Dd6RVtWw.csv
+    │       0kgHtoYJSMS3pMMciC3Us4.csv
+    │       ...
+    │
+    └───tracks
+            0hIiy3ihpzsIX9Dd6RVtWw.csv
+            0kgHtoYJSMS3pMMciC3Us4.csv
+            ...
+```
+
+- `playlists.csv` : a lookup of the playlist URI and the playlist name and description
+- `/features`: folder with an individual csv for each playlist, containing the audio features data.
+- `/artists`: folder with an individual csv for each playlist, containing data about each artist (can be multiple for each track).
+- `/tracks`: folder with an individual csv for each playlist, containing data about each track.
+
+### `playlists.csv`
+
+Has consolidated information about each playlist.
+
+Primary Key:
+
+- `playlist_uri`: Spotify URI for the playlist. Also the title of corresponding CSV files.
+
+Other Attributes:
+
+- `title`: Title of the playlist
+- `description`: Description of the playlist
+- `url`: URL of the playlist
+
+After cleaning & consolidation:
+
+- `year`: Year of the chart
+- `chart`: `H100`, `ARIA` or `OTHER`
+
+### `features/...`
+
+Has audio features for each track returned from the [Spotify Audio Features](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/) endpoint.
+
+*Primary Keys:*
+- `playlist_uri`: Spotify URI for the playlist
+- `uri`: Spotify URI of the track
+
+*Other Attributes:*
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `duration_ms`
+- `key`
+- `mode`
+- `time_signature`
+- `acousticness`
+- `danceability`
+- `energy`
+- `instrumentalness`
+- `liveness`
+- `loudness`
+- `speechiness`
+- `valence`
+- `tempo`
+
+### `tracks/...`
+
+Idenitifying information about each track, as returned from the [Spotify Get Tracks](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-tracks/) endpoint.
+
+*Note: Tracks can have multiple artists. The CSV has been formatted to have an entry for each listed artist of the track.*
+
+*Primary Keys:*
+
+- `playlist_uri`: Spotify URI for the playlist
+- `uri`: Spotify URI of the track
+- `artist`: name of a featuring artist
+- `artist_uri`: Spotify URI of the artist
+
+*Other Attributes:*
+
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `album`: name of the album
+- `album_uri`: Spotify URI for the album
+- `disc_number`
+- `duration_ms`
+- `name`
+- `popularity`
+- `explicit`
+- `uri`
+- `link`: renamed from `href`
+
+
+### `artists/...`
+
+Idenitifying information about each artist, as returned from the [Spotify Get Artists](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-artists/) endpoint.
+
+*Note: Genres for each artist are comma separated and should be expanded*
+
+*Primary Keys:*
+
+- `uri`: Spotify URI of the artist
+
+*Other Attributes:*
+
+The following features are saved in the CSV. Read the description and distribution for each attribute from the above Spotify API documentation.
+
+- `name`: name of the artist
+- `followers`: Number of followers
+- `popularity`
+- `uri`
+- `genres`: comma separated string of genres
+- `link`: renamed from `href`
+
+
+## Data Cleaning & Consolidation
+
+After the above process, we had to get the data into R and create our dataframes. Since the data coming from the Spotify API is reliable and clean, most of the work involves merging together the data from the separate csvs into a single dataframe. Our process is outlined below.
+
+
+### Import CSV
+
+First, let's get the `playlists.csv` file which has information about all the playlists included in the dataset.
+
+```{r , reading-data, message = FALSE, warning  = FALSE, eval = TRUE}
+playlist_data <- read_csv(here::here('Data/playlists.csv'))
+
+features_data <-
+    list.files(path = here::here('Data/features'),
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(.))
+
+tracks_data <- 
+    list.files(path = here::here('Data/tracks'),
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(.))
+
+artists_data <- 
+    list.files(path = here::here('Data/artists'),
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(.))
+
+glimpse(playlist_data)
+glimpse(features_data)
+glimpse(tracks_data)
+glimpse(artists_data)
+```
+
+## Extracting Info From Playlist Titles
+
+We need to extract the year of the playlist and also whether it was for the `Hottest 100` of `ARIA Chart`. We can give these the flags `H100` and `ARIA`.
+
+```{r extract-playlist-info, echo=TRUE}
+playlist_data <- playlist_data %>%
+  mutate(year = as.numeric(str_extract(title, "\\d{4}$"))) %>%
+  mutate(chart = as.factor(if_else(
+    grepl("ARIA", title, fixed = TRUE),
+    "ARIA",
+    if_else(grepl("Hottest 100", title, fixed = TRUE),
+            "H100",
+            "OTHER")
+  )))
+
+head(playlist_data)
+```
+
+## Analysing Data Distribution
+
+Let's ensure we have enough data by graphing the number of tracks in each chart for each year. Note that the Hottest 100 charts begin in 1989. Some tracks are missing in the dataset as they are not available on Spotify. This is only a small percentage of tracks.
+
+```{r graph-data, echo=TRUE}
+features_data %>% 
+  left_join(playlist_data, by = "playlist_uri") %>%
+  group_by(year, chart) %>%
+  tally(name = "count") %>%
+  ggplot(aes(fill=chart, y=count, x=year)) + 
+    geom_bar(position="dodge", stat="identity") +
+  facet_wrap(~chart)
+```
+
+## Write To CSV
+
+We can now write the consolidated dataframes to csvs for submission.
+
+```{r write-to-csv, echo=TRUE}
+write.csv(playlist_data,file = here::here('/Data/cleaned/playlists.csv'))
+write.csv(features_data,file = here::here('/Data/cleaned/features.csv'))
+write.csv(tracks_data,file = here::here('/Data/cleaned/tracks.csv'))
+write.csv(artists_data,file = here::here('/Data/cleaned/artists.csv'))
+
+```
